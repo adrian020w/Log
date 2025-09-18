@@ -27,7 +27,7 @@ banner() {
 
 # Admin login
 admin_login() {
-    read -p "Email Admin: " email
+    read -p "adrian: " email
     read -sp "Password: " pass
     echo ""
     if [[ "$email" == "$ADMIN_EMAIL" && "$pass" == "$ADMIN_PASS" ]]; then
