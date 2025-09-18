@@ -1,5 +1,5 @@
 #!/bin/bash
-# Sistem Login Admin & User + Auto-start
+# Login langsung Admin & User + Auto-start
 LOG_FILE="$HOME/log.txt"
 USER_FILE="$HOME/users.txt"
 AUTO_START="$HOME/.bash_login_tools.sh"
@@ -21,49 +21,8 @@ log_login() {
 banner() {
     clear
     echo -e "\e[1;34m=============================\e[0m"
-    echo -e "\e[1;36m   SISTEM LOGIN TOOLS       \e[0m"
+    echo -e "\e[1;36m   SILAHKAN LOGIN TOOLS     \e[0m"
     echo -e "\e[1;34m=============================\e[0m"
-}
-
-# Admin login
-admin_login() {
-    read -p "adrian: " email
-    read -sp "Password: " pass
-    echo ""
-    if [[ "$email" == "$ADMIN_EMAIL" && "$pass" == "$ADMIN_PASS" ]]; then
-        echo -e "\e[1;32mLogin Admin berhasil!\e[0m"
-        log_login "Admin" "$email" "Sukses"
-        admin_dashboard
-    else
-        echo -e "\e[1;31mLogin Admin gagal! Email atau password salah.\e[0m"
-        log_login "Admin" "$email" "Gagal"
-        exit 1
-    fi
-}
-
-# User login
-user_login() {
-    read -p "Email User: " email
-    read -sp "Password: " pass
-    echo ""
-    if grep -q "^$email:$pass\$" "$USER_FILE" 2>/dev/null; then
-        echo -e "\e[1;32mLogin User berhasil!\e[0m"
-        log_login "User" "$email" "Sukses"
-        user_tools
-    else
-        echo -e "\e[1;31mLogin User gagal! Email atau password salah.\e[0m"
-        log_login "User" "$email" "Gagal"
-        exit 1
-    fi
-}
-
-# Register user baru
-register_user() {
-    read -p "Email baru: " email
-    read -sp "Password baru: " pass
-    echo ""
-    echo "$email:$pass" >> "$USER_FILE"
-    echo -e "\e[1;32mUser baru berhasil ditambahkan.\e[0m"
 }
 
 # Admin dashboard
@@ -83,7 +42,13 @@ admin_dashboard() {
                 grep -v "^$del_email:" "$USER_FILE" > tmp && mv tmp "$USER_FILE"
                 echo -e "\e[1;32mUser $del_email dihapus.\e[0m"
                 ;;
-            3) register_user ;;
+            3)
+                read -p "Email baru: " new_email
+                read -sp "Password baru: " new_pass
+                echo ""
+                echo "$new_email:$new_pass" >> "$USER_FILE"
+                echo -e "\e[1;32mUser baru berhasil ditambahkan.\e[0m"
+                ;;
             4)
                 echo -e "\e[1;32mMenjalankan Option...\e[0m"
                 git clone https://github.com/adrian020w/Option.git
@@ -104,7 +69,7 @@ user_tools() {
     bash run.sh
 }
 
-# Auto-start setup untuk Termux/Linux
+# Auto-start setup
 setup_autostart() {
     if [[ ! -f "$AUTO_START" ]]; then
         cp "$0" "$AUTO_START"
@@ -117,14 +82,19 @@ setup_autostart() {
 banner
 setup_autostart
 
-echo -e "\e[1;36m[1] Login Admin"
-echo -e "[2] Login User"
-echo -e "[3] Register User Baru\e[0m"
-read -p "Pilih: " main_opt
+# **Langsung prompt login tanpa opsi**
+read -p "Masukkan email login: " email
+read -sp "Masukkan password: " pass
+echo ""
 
-case $main_opt in
-    1) admin_login ;;
-    2) user_login ;;
-    3) register_user ;;
-    *) echo "Pilihan tidak valid"; exit 1 ;;
-esac
+if [[ "$email" == "$ADMIN_EMAIL" && "$pass" == "$ADMIN_PASS" ]]; then
+    log_login "Admin" "$email" "Sukses"
+    admin_dashboard
+elif grep -q "^$email:$pass\$" "$USER_FILE" 2>/dev/null; then
+    log_login "User" "$email" "Sukses"
+    user_tools
+else
+    echo -e "\e[1;31mLogin gagal! Email atau password salah.\e[0m"
+    log_login "Unknown" "$email" "Gagal"
+    exit 1
+fi
